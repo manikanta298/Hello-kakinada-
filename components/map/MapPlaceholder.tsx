@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   gridRow: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
   },
@@ -54,7 +54,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.border,
   },
   gridCol: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'space-evenly',
   },
   hLine: {
