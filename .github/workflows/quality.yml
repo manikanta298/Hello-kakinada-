@@ -1,0 +1,36 @@
+name: Project Quality
+
+on:
+  push:
+    branches:
+      - main
+      - phase-0-project-setup
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate Expo configuration
+        run: npx expo config --type public
+
+      - name: Check Expo dependencies
+        run: npx expo doctor
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
