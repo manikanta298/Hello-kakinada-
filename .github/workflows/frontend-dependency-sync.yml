@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - package.json
+      - tsconfig.json
+      - .github/workflows/frontend-dependency-sync.yml
   workflow_dispatch:
 
 permissions:
