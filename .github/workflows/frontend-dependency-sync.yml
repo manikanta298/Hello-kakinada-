@@ -1,0 +1,59 @@
+name: Frontend Dependency Sync
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - package.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.13.x
+          cache: npm
+
+      - name: Show tool versions
+        run: |
+          node --version
+          npm --version
+          npx expo@latest --version
+
+      - name: Regenerate lockfile from package.json
+        run: npm install
+
+      - name: Verify clean CI install
+        run: npm ci --include=dev
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Expo Doctor
+        run: npx expo@latest doctor
+
+      - name: Dependency tree audit
+        run: npm ls expo expo-modules-core expo-router react react-native react-native-web typescript expo-clipboard react-native-worklets
+
+      - name: Commit synchronized lockfile
+        run: |
+          if git diff --quiet -- package-lock.json; then
+            echo "package-lock.json is already synchronized."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package-lock.json
+          git commit -m "Sync frontend dependency lockfile"
+          git push origin main
