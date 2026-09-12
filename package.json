@@ -37,6 +37,11 @@
       "exclude": [
         "hermes-engine"
       ]
+    },
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "enabled": false
+      }
     }
   }
 }
