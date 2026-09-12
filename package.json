@@ -14,6 +14,7 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.0",
     "expo": "^57.0.22",
+    "expo-clipboard": "~57.0.1",
     "expo-constants": "~57.0.2",
     "expo-font": "~57.0.1",
     "expo-image-picker": "~57.0.16",
@@ -30,7 +31,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.0",
-    "typescript": "~5.9.2"
+    "typescript": "~6.0.3"
   },
   "expo": {
     "install": {
