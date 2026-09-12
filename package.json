@@ -24,13 +24,13 @@
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.0",
-    "react-native-web": "0.21.0",
+    "react-native-web": "^0.21.2",
     "react-dom": "19.2.3",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@types/react": "~19.2.0",
-    "typescript": "~5.9.2"
+    "typescript": "~6.0.3"
   },
   "expo": {
     "install": {
