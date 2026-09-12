@@ -29,7 +29,7 @@ jobs:
         run: npx expo config --type public
 
       - name: Check Expo dependencies
-        run: npx expo doctor
+        run: npx expo-doctor
 
       - name: TypeScript typecheck
         run: npm run typecheck
