@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Hello Kakinada",
+    "slug": "hello-kakinada",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "hellokakinada",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Hello Kakinada to access photos you choose for listings.",
+          "cameraPermission": "Allow Hello Kakinada to use the camera when adding listing photos.",
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "android": {
+      "package": "com.hellokakinada.app"
+    }
+  }
+}
