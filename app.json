@@ -20,6 +20,12 @@
     ],
     "android": {
       "package": "com.hellokakinada.app"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fbd269ff-92ae-4d5c-981b-0107e49919d6"
+      }
     }
   }
 }
