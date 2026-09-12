@@ -19,11 +19,6 @@
     ],
     "android": {
       "package": "com.hellokakinada.app"
-    },
-    "install": {
-      "exclude": [
-        "hermes-engine"
-      ]
     }
   }
 }
