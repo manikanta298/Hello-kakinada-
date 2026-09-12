@@ -6,6 +6,7 @@ import { AppText } from '@/components/common/AppText';
 import { Rating } from './Rating';
 import { FavoriteButton } from './FavoriteButton';
 import { Listing } from '@/types/listing';
+import { getListingRoute } from '@/utils/listingRoute';
 import { colors, radius, shadows, spacing } from '@/theme';
 
 interface ListingCardProps {
@@ -17,7 +18,7 @@ export function ListingCard({ listing, width = 220 }: ListingCardProps) {
   return (
     <Pressable
       style={({ pressed }) => [styles.card, { width }, pressed && styles.pressed]}
-      onPress={() => router.push(`/listing/${listing.id}`)}
+      onPress={() => router.push(getListingRoute(listing))}
     >
       <View style={styles.imageWrapper}>
         <Image source={{ uri: listing.image }} style={styles.image} />

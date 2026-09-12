@@ -1,34 +1,65 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '@/components/common/Screen';
 import { AppText } from '@/components/common/AppText';
+import { LoadingState } from '@/components/common/LoadingState';
 import { OwnerHeader } from '@/components/owner/OwnerHeader';
 import { OwnerStats } from '@/components/owner/OwnerStats';
 import { SubscriptionCard } from '@/components/owner/SubscriptionCard';
 import { OwnerListingCard } from '@/components/owner/OwnerListingCard';
 import { LeadCard } from '@/components/owner/LeadCard';
-import { mockOwnerListings } from '@/data/mockOwnerListings';
-import { mockLeads } from '@/data/mockLeads';
-import { mockSubscription } from '@/data/mockSubscription';
+import { ownerService } from '@/services';
+import { OwnerListing, Subscription } from '@/types/owner';
+import { Lead } from '@/types/lead';
 import { colors, dimensions, radius, shadows, spacing } from '@/theme';
 
 export default function OwnerDashboardScreen() {
-  const [listings, setListings] = useState(mockOwnerListings);
-  const leads = mockLeads.slice(0, 3);
+  const [listings, setListings] = useState<OwnerListing[]>([]);
+  const [allLeads, setAllLeads] = useState<Lead[]>([]);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([ownerService.getListings(), ownerService.getLeads(), ownerService.getSubscription()]).then(
+      ([ownerListings, leads, sub]) => {
+        if (cancelled) return;
+        setListings(ownerListings);
+        setAllLeads(leads);
+        setSubscription(sub);
+        setLoading(false);
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const leads = useMemo(() => allLeads.slice(0, 3), [allLeads]);
 
   const stats = useMemo(() => {
     const totalViews = listings.reduce((sum, l) => sum + l.views, 0);
-    const newLeads = mockLeads.filter((l) => l.isNew).length;
+    const newLeads = allLeads.filter((l) => l.isNew).length;
     const activeListings = listings.filter((l) => l.status === 'active').length;
     return { totalViews, newLeads, activeListings };
-  }, [listings]);
+  }, [listings, allLeads]);
 
   const handleDelete = (id: string) => {
     setListings((prev) => prev.filter((l) => l.id !== id));
+    ownerService.deleteListing(id);
   };
+
+  if (loading || !subscription) {
+    return (
+      <Screen edges={['top']}>
+        <StatusBar style="dark" />
+        <LoadingState />
+      </Screen>
+    );
+  }
 
   return (
     <Screen edges={['top']}>
@@ -45,7 +76,7 @@ export default function OwnerDashboardScreen() {
         </View>
 
         <View style={styles.section}>
-          <SubscriptionCard subscription={mockSubscription} />
+          <SubscriptionCard subscription={subscription} />
         </View>
 
         <View style={styles.section}>

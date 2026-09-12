@@ -1,20 +1,36 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
+import { LoadingState } from '@/components/common/LoadingState';
 import { LeadCard } from '@/components/owner/LeadCard';
-import { mockLeads } from '@/data/mockLeads';
+import { ownerService } from '@/services';
+import { Lead } from '@/types/lead';
 import { colors, radius, spacing } from '@/theme';
 
 export default function OwnerLeadsScreen() {
   const [filter, setFilter] = useState<'all' | 'new'>('all');
+  const [allLeads, setAllLeads] = useState<Lead[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    ownerService.getLeads().then((leads) => {
+      if (cancelled) return;
+      setAllLeads(leads);
+      setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const leads = useMemo(
-    () => (filter === 'new' ? mockLeads.filter((l) => l.isNew) : mockLeads),
-    [filter]
+    () => (filter === 'new' ? allLeads.filter((l) => l.isNew) : allLeads),
+    [filter, allLeads]
   );
 
   return (
@@ -33,21 +49,25 @@ export default function OwnerLeadsScreen() {
         <Tab label="New" active={filter === 'new'} onPress={() => setFilter('new')} />
       </View>
 
-      <FlatList
-        data={leads}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <LeadCard lead={item} />}
-        ItemSeparatorComponent={() => <View style={styles.divider} />}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="chatbubbles-outline" size={36} color={colors.textTertiary} />
-            <AppText preset="bodyMedium" style={styles.emptyTitle}>
-              No enquiries here
-            </AppText>
-          </View>
-        }
-      />
+      {loading ? (
+        <LoadingState />
+      ) : (
+        <FlatList
+          data={leads}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <LeadCard lead={item} />}
+          ItemSeparatorComponent={() => <View style={styles.divider} />}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons name="chatbubbles-outline" size={36} color={colors.textTertiary} />
+              <AppText preset="bodyMedium" style={styles.emptyTitle}>
+                No enquiries here
+              </AppText>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }

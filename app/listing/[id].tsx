@@ -9,16 +9,25 @@ import { LocationCard } from '@/components/listings/LocationCard';
 import { OpeningHours } from '@/components/listings/OpeningHours';
 import { ContactButtons } from '@/components/listings/ContactButtons';
 import { ReviewList } from '@/components/reviews/ReviewList';
+import { ReportLink } from '@/components/listings/ReportLink';
 import { AppText } from '@/components/common/AppText';
-import { mockListings } from '@/data/mockListings';
-import { mockReviews } from '@/data/mockReviews';
-import { mockWorkingHours } from '@/data/mockWorkingHours';
+import { LoadingState } from '@/components/common/LoadingState';
+import { useListingDetail } from '@/hooks/useListingDetail';
 import { colors, spacing } from '@/theme';
 
 export default function ListingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const listing = mockListings.find((l) => l.id === id) ?? mockListings[0];
-  const reviews = mockReviews.filter((r) => r.listingId === listing.id);
+  const { listing, reviews, hours, loading } = useListingDetail(id);
+
+  if (loading || !listing) {
+    return (
+      <View style={styles.root}>
+        <StatusBar style="dark" />
+        <LoadingState />
+      </View>
+    );
+  }
+
   const average =
     reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : listing.rating;
 
@@ -26,7 +35,7 @@ export default function ListingDetailScreen() {
     <View style={styles.root}>
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <ImageCarousel images={listing.images} />
+        <ImageCarousel images={listing.images} listingId={listing.id} />
 
         <ListingHeader listing={listing} />
 
@@ -44,12 +53,14 @@ export default function ListingDetailScreen() {
 
         <View style={styles.section}>
           <SectionLabel label="Working Hours" />
-          <OpeningHours hours={mockWorkingHours} />
+          <OpeningHours hours={hours} />
         </View>
 
         <View style={[styles.section, styles.reviewSection]}>
           <ReviewList listingId={listing.id} reviews={reviews} average={average} />
         </View>
+      
+        <ReportLink listingId={listing.id} />
       </ScrollView>
 
       <SafeAreaView edges={['bottom']} style={styles.footer}>

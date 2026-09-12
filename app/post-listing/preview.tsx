@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,13 +6,25 @@ import { FormProgress } from '@/components/forms/FormProgress';
 import { WizardFooter } from '@/components/forms/WizardFooter';
 import { AppText } from '@/components/common/AppText';
 import { usePostListingStore } from '@/store/postListingStore';
-import { mockCategories } from '@/data/mockCategories';
+import { categoryService } from '@/services';
+import { Category } from '@/types/category';
 import { colors, radius, spacing } from '@/theme';
 
 export default function PostListingPreviewStep() {
   const { categoryId, title, description, price, address, phone, whatsapp, photos, reset } =
     usePostListingStore();
-  const category = mockCategories.find((c) => c.id === categoryId);
+  const [category, setCategory] = useState<Category | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    if (!categoryId) return;
+    categoryService.getById(categoryId).then((result) => {
+      if (!cancelled) setCategory(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [categoryId]);
 
   const handleSubmit = () => {
     router.push('/post-listing/success');

@@ -8,9 +8,10 @@ import { colors, dimensions, spacing } from '@/theme';
 interface ImageCarouselProps {
   images: string[];
   height?: number;
+  listingId?: string;
 }
 
-export function ImageCarousel({ images, height = 280 }: ImageCarouselProps) {
+export function ImageCarousel({ images, height = 280, listingId }: ImageCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const photos = images.length > 0 ? images : ['placeholder'];
 
@@ -44,6 +45,16 @@ export function ImageCarousel({ images, height = 280 }: ImageCarouselProps) {
       <Pressable style={styles.backButton} onPress={() => router.back()} hitSlop={8}>
         <Ionicons name="chevron-back" size={20} color={colors.textPrimary} />
       </Pressable>
+
+      {listingId && (
+        <Pressable
+          style={styles.shareButton}
+          onPress={() => router.push(`/modal/share?id=${listingId}`)}
+          hitSlop={8}
+        >
+          <Ionicons name="share-outline" size={18} color={colors.textPrimary} />
+        </Pressable>
+      )}
 
       {photos.length > 1 && (
         <View style={styles.dots}>
@@ -81,6 +92,17 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: spacing.md,
     left: spacing.md,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: colors.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareButton: {
+    position: 'absolute',
+    top: spacing.md,
+    right: spacing.md,
     width: 36,
     height: 36,
     borderRadius: 18,

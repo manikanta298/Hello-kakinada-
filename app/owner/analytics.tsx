@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
+import { LoadingState } from '@/components/common/LoadingState';
 import { OwnerStats } from '@/components/owner/OwnerStats';
-import { mockOwnerListings } from '@/data/mockOwnerListings';
-import { mockLeads } from '@/data/mockLeads';
-import { mockSubscription } from '@/data/mockSubscription';
+import { ownerService } from '@/services';
+import { OwnerListing, Subscription } from '@/types/owner';
+import { Lead } from '@/types/lead';
 import { colors, radius, shadows, spacing } from '@/theme';
 
 const PLANS = [
@@ -30,9 +31,39 @@ const PLANS = [
 ];
 
 export default function OwnerAnalyticsScreen() {
-  const totalViews = mockOwnerListings.reduce((sum, l) => sum + l.views, 0);
-  const totalLeads = mockLeads.length;
-  const activeListings = mockOwnerListings.filter((l) => l.status === 'active').length;
+  const [ownerListings, setOwnerListings] = useState<OwnerListing[]>([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([ownerService.getListings(), ownerService.getLeads(), ownerService.getSubscription()]).then(
+      ([listings, allLeads, sub]) => {
+        if (cancelled) return;
+        setOwnerListings(listings);
+        setLeads(allLeads);
+        setSubscription(sub);
+        setLoading(false);
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (loading || !subscription) {
+    return (
+      <View style={styles.root}>
+        <StatusBar style="dark" />
+        <LoadingState />
+      </View>
+    );
+  }
+
+  const totalViews = ownerListings.reduce((sum, l) => sum + l.views, 0);
+  const totalLeads = leads.length;
+  const activeListings = ownerListings.filter((l) => l.status === 'active').length;
 
   return (
     <View style={styles.root}>
@@ -56,7 +87,7 @@ export default function OwnerAnalyticsScreen() {
         </AppText>
 
         {PLANS.map((plan) => {
-          const active = plan.id === mockSubscription.plan;
+          const active = plan.id === subscription.plan;
           return (
             <View key={plan.id} style={[styles.planCard, active && styles.planCardActive]}>
               <View style={styles.planHeader}>

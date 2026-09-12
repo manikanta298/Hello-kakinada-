@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -7,7 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
 import { FilterChip } from '@/components/search/FilterChip';
 import { useSearchStore } from '@/store/searchStore';
-import { mockCategories } from '@/data/mockCategories';
+import { categoryService } from '@/services';
+import { Category } from '@/types/category';
 import { SortOption } from '@/types/search';
 import { colors, dimensions, radius, shadows, spacing } from '@/theme';
 
@@ -22,6 +23,17 @@ const RATING_OPTIONS = [4.5, 4, 3.5, 3];
 
 export default function FiltersScreen() {
   const { filters, setFilters, resetFilters } = useSearchStore();
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    categoryService.getAll().then((result) => {
+      if (!cancelled) setCategories(result);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <View style={styles.root}>
@@ -41,7 +53,7 @@ export default function FiltersScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <FilterSection title="Category">
           <View style={styles.wrapRow}>
-            {mockCategories.map((c) => (
+            {categories.map((c) => (
               <FilterChip
                 key={c.id}
                 label={c.name}

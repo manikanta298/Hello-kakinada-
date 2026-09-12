@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/common/AppText';
-import { DayHours } from '@/data/mockWorkingHours';
+import { DayHours } from '@/types/workingHours';
 import { colors, spacing } from '@/theme';
 
 interface OpeningHoursProps {

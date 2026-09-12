@@ -8,12 +8,14 @@ import { spacing } from '@/theme';
 
 interface PopularListingsProps {
   listings: Listing[];
+  title?: string;
+  onPressAction?: () => void;
 }
 
-export function PopularListings({ listings }: PopularListingsProps) {
+export function PopularListings({ listings, title = 'Popular Near You', onPressAction }: PopularListingsProps) {
   return (
     <View>
-      <SectionHeader title="Popular Near You" onPressAction={() => router.push('/search')} />
+      <SectionHeader title={title} onPressAction={onPressAction ?? (() => router.push('/search'))} />
       <FlatList
         data={listings}
         horizontal

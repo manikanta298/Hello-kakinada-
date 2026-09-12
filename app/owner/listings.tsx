@@ -1,20 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FlatList, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
+import { LoadingState } from '@/components/common/LoadingState';
 import { OwnerListingCard } from '@/components/owner/OwnerListingCard';
-import { mockOwnerListings } from '@/data/mockOwnerListings';
+import { useOwnerListings } from '@/hooks/useOwnerListings';
 import { colors, spacing } from '@/theme';
 
 export default function OwnerListingsScreen() {
-  const [listings, setListings] = useState(mockOwnerListings);
-
-  const handleDelete = (id: string) => {
-    setListings((prev) => prev.filter((l) => l.id !== id));
-  };
+  const { listings, loading, remove } = useOwnerListings();
 
   return (
     <View style={styles.root}>
@@ -29,24 +26,28 @@ export default function OwnerListingsScreen() {
         </Pressable>
       </SafeAreaView>
 
-      <FlatList
-        data={listings}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <OwnerListingCard listing={item} onDelete={handleDelete} />}
-        ItemSeparatorComponent={() => <View style={styles.divider} />}
-        contentContainerStyle={styles.listContent}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="storefront-outline" size={36} color={colors.textTertiary} />
-            <AppText preset="bodyMedium" style={styles.emptyTitle}>
-              No listings yet
-            </AppText>
-            <AppText preset="caption" color={colors.textTertiary} align="center">
-              Post your first listing to start getting leads.
-            </AppText>
-          </View>
-        }
-      />
+      {loading ? (
+        <LoadingState />
+      ) : (
+        <FlatList
+          data={listings}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <OwnerListingCard listing={item} onDelete={remove} />}
+          ItemSeparatorComponent={() => <View style={styles.divider} />}
+          contentContainerStyle={styles.listContent}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons name="storefront-outline" size={36} color={colors.textTertiary} />
+              <AppText preset="bodyMedium" style={styles.emptyTitle}>
+                No listings yet
+              </AppText>
+              <AppText preset="caption" color={colors.textTertiary} align="center">
+                Post your first listing to start getting leads.
+              </AppText>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
