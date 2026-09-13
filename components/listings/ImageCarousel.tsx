@@ -7,13 +7,14 @@ import { colors, dimensions, spacing } from '@/theme';
 
 interface ImageCarouselProps {
   images: string[];
+  image?: string;
   height?: number;
   listingId?: string;
 }
 
-export function ImageCarousel({ images, height = 280, listingId }: ImageCarouselProps) {
+export function ImageCarousel({ images, image, height = 280, listingId }: ImageCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
-  const photos = images.length > 0 ? images : ['placeholder'];
+  const photos = images.length > 0 ? images : image ? [image] : ['placeholder'];
 
   const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const index = Math.round(e.nativeEvent.contentOffset.x / dimensions.screenWidth);

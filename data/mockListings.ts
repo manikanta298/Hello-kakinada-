@@ -3,6 +3,8 @@ import { Listing } from '@/types/listing';
 export const mockListings: Listing[] = [
   {
     id: 'l1',
+    phone: '+919876543210',
+    whatsapp: true,
     title: 'Sea Pearl Restaurant',
     categoryId: 'c1',
     categoryName: 'Restaurants',
@@ -18,6 +20,8 @@ export const mockListings: Listing[] = [
   },
   {
     id: 'l2',
+    phone: '+919876512345',
+    whatsapp: true,
     title: 'Godavari Residency',
     categoryId: 'c2',
     categoryName: 'Hotels',
@@ -33,6 +37,8 @@ export const mockListings: Listing[] = [
   },
   {
     id: 'l3',
+    phone: '+919845098450',
+    whatsapp: false,
     title: '2BHK Flat for Rent',
     categoryId: 'c3',
     categoryName: 'Real Estate',
@@ -47,6 +53,8 @@ export const mockListings: Listing[] = [
   },
   {
     id: 'l4',
+    phone: '+919812345678',
+    whatsapp: false,
     title: 'Frontend Developer',
     categoryId: 'c4',
     categoryName: 'Jobs',
@@ -60,6 +68,8 @@ export const mockListings: Listing[] = [
   },
   {
     id: 'l5',
+    phone: '+919888812345',
+    whatsapp: true,
     title: 'QuickFix Electricians',
     categoryId: 'c5',
     categoryName: 'Services',
@@ -74,6 +84,8 @@ export const mockListings: Listing[] = [
   },
   {
     id: 'l6',
+    phone: '+918842223344',
+    whatsapp: false,
     title: 'City Care Hospital',
     categoryId: 'c6',
     categoryName: 'Healthcare',

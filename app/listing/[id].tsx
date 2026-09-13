@@ -35,7 +35,7 @@ export default function ListingDetailScreen() {
     <View style={styles.root}>
       <StatusBar style="dark" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <ImageCarousel images={listing.images} listingId={listing.id} />
+        <ImageCarousel images={listing.images} image={listing.image} listingId={listing.id} />
 
         <ListingHeader listing={listing} />
 
