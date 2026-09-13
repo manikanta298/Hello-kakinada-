@@ -56,7 +56,7 @@ export function OwnerListingCard({ listing, onDelete }: OwnerListingCardProps) {
       <View style={styles.actions}>
         <Pressable
           style={styles.actionButton}
-          onPress={() => router.push(`/owner/listing/${listing.id}/edit` as any)}
+          onPress={() => router.push(`/owner/listing/${listing.id}/edit`)}
           hitSlop={6}
         >
           <Ionicons name="create-outline" size={18} color={colors.textPrimary} />

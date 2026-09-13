@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
@@ -116,7 +116,18 @@ export default function OwnerAnalyticsScreen() {
               ))}
 
               {!active && (
-                <Pressable style={styles.selectButton}>
+                <Pressable
+                  style={styles.selectButton}
+                  onPress={() =>
+                    Alert.alert('Switch plan', `You're about to switch to the ${plan.label} plan.`, [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Confirm',
+                        onPress: () => Alert.alert('Plan updated', `You're now on the ${plan.label} plan.`),
+                      },
+                    ])
+                  }
+                >
                   <AppText preset="bodyMedium" color={colors.white}>
                     Switch to {plan.label}
                   </AppText>
