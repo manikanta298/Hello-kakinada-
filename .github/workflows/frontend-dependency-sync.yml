@@ -43,7 +43,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Expo Doctor
-        run: npx expo@latest doctor
+        run: npx expo-doctor
 
       - name: Dependency tree audit
         run: npm ls expo expo-modules-core expo-router react react-native react-native-web typescript expo-clipboard react-native-worklets
