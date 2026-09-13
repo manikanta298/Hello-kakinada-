@@ -1,6 +1,6 @@
 import React from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Image, Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components/common/AppText';
 import { colors, radius, spacing } from '@/theme';
@@ -14,8 +14,17 @@ interface ImagePickerGridProps {
 
 export function ImagePickerGrid({ photos, onAdd, onRemove, maxPhotos = 8 }: ImagePickerGridProps) {
   const handleAdd = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(
+        'Photo access needed',
+        'Please allow photo library access in your device settings to add photos.'
+      );
+      return;
+    }
+
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       quality: 0.7,
     });
     if (!result.canceled && result.assets[0]) {
