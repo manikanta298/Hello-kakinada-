@@ -33,7 +33,9 @@ export function OTPInput({ length = 4, value, onChange }: OTPInputProps) {
       {digits.map((digit, index) => (
         <TextInput
           key={index}
-          ref={(ref) => (inputs.current[index] = ref)}
+          ref={(ref) => {
+            inputs.current[index] = ref;
+          }}
           value={digit}
           onChangeText={(text) => handleChange(text, index)}
           onKeyPress={({ nativeEvent }) => handleKeyPress(nativeEvent.key, index)}
