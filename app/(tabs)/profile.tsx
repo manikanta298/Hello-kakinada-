@@ -1,11 +1,12 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '@/components/common/Screen';
 import { AppText } from '@/components/common/AppText';
 import { useAuth } from '@/hooks/useAuth';
+import { authService } from '@/services/auth';
 import { colors, radius, spacing } from '@/theme';
 
 interface MenuItem {
@@ -16,7 +17,7 @@ interface MenuItem {
 }
 
 export default function ProfileScreen() {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   const menuItems: MenuItem[] = [
     { icon: 'storefront-outline', label: 'My Business Dashboard', onPress: () => router.push('/owner'), accent: true },
@@ -27,9 +28,13 @@ export default function ProfileScreen() {
     { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => router.push('/profile/help') },
   ];
 
-  const handleLogout = () => {
-    logout();
-    router.replace('/(auth)/login');
+  const handleLogout = async () => {
+    try {
+      await authService.signOut();
+      router.replace('/(auth)/login');
+    } catch (err) {
+      Alert.alert('Could not log out', err instanceof Error ? err.message : 'Please try again.');
+    }
   };
 
   return (

@@ -1,19 +1,33 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
 import { FormField } from '@/components/forms/FormField';
 import { AuthHeader } from '@/components/auth/AuthHeader';
+import { authService } from '@/services/auth';
 import { colors, dimensions, radius, shadows, spacing } from '@/theme';
 
-export default function ForgotPasswordScreen() {
-  const [phone, setPhone] = useState('');
-  const [sent, setSent] = useState(false);
-  const canSubmit = phone.trim().length >= 10;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const handleSend = () => setSent(true);
+export default function ForgotPasswordScreen() {
+  const [email, setEmail] = useState('');
+  const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const canSubmit = EMAIL_RE.test(email.trim()) && !submitting;
+
+  const handleSend = async () => {
+    setSubmitting(true);
+    try {
+      await authService.resetPassword(email.trim());
+      setSent(true);
+    } catch (err) {
+      Alert.alert('Could not send reset email', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
@@ -29,10 +43,10 @@ export default function ForgotPasswordScreen() {
                 <Ionicons name="mail-open-outline" size={28} color={colors.white} />
               </View>
               <AppText preset="h2" align="center" style={styles.sentTitle}>
-                Check your phone
+                Check your email
               </AppText>
               <AppText preset="body" color={colors.textSecondary} align="center" style={styles.sentSubtitle}>
-                We've sent a password reset link via SMS to {phone}.
+                We've sent a password reset link to {email}.
               </AppText>
 
               <Pressable style={styles.submit} onPress={() => router.replace('/(auth)/login')}>
@@ -45,16 +59,16 @@ export default function ForgotPasswordScreen() {
             <>
               <AuthHeader
                 title="Reset password"
-                subtitle="Enter your registered phone number and we'll send you a reset link."
+                subtitle="Enter your registered email and we'll send you a reset link."
               />
 
               <FormField
-                label="Phone number"
-                placeholder="10-digit mobile number"
-                keyboardType="phone-pad"
-                value={phone}
-                onChangeText={setPhone}
-                maxLength={10}
+                label="Email"
+                placeholder="you@example.com"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={email}
+                onChangeText={setEmail}
               />
 
               <Pressable
@@ -67,7 +81,7 @@ export default function ForgotPasswordScreen() {
                 disabled={!canSubmit}
               >
                 <AppText preset="button" color={colors.white}>
-                  Send Reset Link
+                  {submitting ? 'Sending…' : 'Send Reset Link'}
                 </AppText>
               </Pressable>
             </>

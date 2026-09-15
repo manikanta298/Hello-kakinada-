@@ -7,21 +7,30 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
 import { FormField } from '@/components/forms/FormField';
 import { useAuth } from '@/hooks/useAuth';
+import { authService } from '@/services/auth';
 import { colors, radius, spacing } from '@/theme';
 
 export default function EditProfileScreen() {
   const { user, updateUser } = useAuth();
   const [name, setName] = useState(user?.name ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
-  const [email, setEmail] = useState(user?.email ?? '');
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!name.trim()) {
       Alert.alert('Name is required');
       return;
     }
-    updateUser({ name: name.trim(), phone: phone.trim(), email: email.trim() || undefined });
-    router.back();
+    setSaving(true);
+    try {
+      await authService.updateProfile({ fullName: name.trim(), phone: phone.trim() || null });
+      updateUser({ name: name.trim(), phone: phone.trim() });
+      router.back();
+    } catch (err) {
+      Alert.alert('Could not save changes', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -56,21 +65,13 @@ export default function EditProfileScreen() {
           keyboardType="phone-pad"
           maxLength={10}
         />
-        <FormField
-          label="Email"
-          optional
-          value={email}
-          onChangeText={setEmail}
-          placeholder="you@example.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        <FormField label="Email" value={user?.email ?? ''} onChangeText={() => {}} editable={false} />
       </ScrollView>
 
       <View style={styles.footer}>
-        <Pressable style={styles.saveButton} onPress={handleSave}>
+        <Pressable style={styles.saveButton} onPress={handleSave} disabled={saving}>
           <AppText preset="bodyMedium" color={colors.white}>
-            Save changes
+            {saving ? 'Saving…' : 'Save changes'}
           </AppText>
         </Pressable>
       </View>

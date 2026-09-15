@@ -1,19 +1,22 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
 import { OTPInput } from '@/components/auth/OTPInput';
 import { AuthHeader } from '@/components/auth/AuthHeader';
+import { authService } from '@/services/auth';
 import { useAuthStore } from '@/store/authStore';
 import { colors, dimensions, radius, shadows, spacing } from '@/theme';
 
 const RESEND_SECONDS = 30;
+const CODE_LENGTH = 6;
 
 export default function OTPScreen() {
   const [code, setCode] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(RESEND_SECONDS);
-  const { pendingPhone, login } = useAuthStore();
+  const [submitting, setSubmitting] = useState(false);
+  const pendingEmail = useAuthStore((s) => s.pendingEmail);
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -21,27 +24,47 @@ export default function OTPScreen() {
     return () => clearInterval(timer);
   }, [secondsLeft]);
 
-  const canVerify = code.length === 4;
+  const canVerify = code.length === CODE_LENGTH && !submitting;
 
-  const handleVerify = () => {
-    // Prototype: any 4-digit code succeeds.
-    login({ id: 'u1', name: 'New User', phone: pendingPhone ?? '' });
-    router.replace('/(tabs)');
+  const handleVerify = async () => {
+    if (!pendingEmail) {
+      router.replace('/(auth)/register');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await authService.verifySignupOtp(pendingEmail, code);
+      router.replace('/(tabs)');
+    } catch (err) {
+      Alert.alert('Verification failed', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleResend = async () => {
+    if (!pendingEmail) return;
+    setSecondsLeft(RESEND_SECONDS);
+    try {
+      await authService.resendSignupOtp(pendingEmail);
+    } catch (err) {
+      Alert.alert('Could not resend code', err instanceof Error ? err.message : 'Please try again.');
+    }
   };
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <View style={styles.content}>
         <AuthHeader
-          title="Verify your number"
-          subtitle={`Enter the 4-digit code sent to ${pendingPhone ?? 'your phone'}`}
+          title="Verify your email"
+          subtitle={`Enter the ${CODE_LENGTH}-digit code sent to ${pendingEmail ?? 'your email'}`}
         />
 
-        <OTPInput value={code} onChange={setCode} />
+        <OTPInput value={code} onChange={setCode} length={CODE_LENGTH} />
 
         <Pressable
           style={styles.resend}
-          onPress={() => setSecondsLeft(RESEND_SECONDS)}
+          onPress={handleResend}
           disabled={secondsLeft > 0}
           hitSlop={8}
         >
@@ -64,7 +87,7 @@ export default function OTPScreen() {
           disabled={!canVerify}
         >
           <AppText preset="button" color={colors.white}>
-            Verify & Continue
+            {submitting ? 'Verifying…' : 'Verify & Continue'}
           </AppText>
         </Pressable>
       </View>

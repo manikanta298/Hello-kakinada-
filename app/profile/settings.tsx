@@ -5,7 +5,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
-import { useAuth } from '@/hooks/useAuth';
+import { authService } from '@/services/auth';
 import { colors, radius, spacing } from '@/theme';
 
 function SectionHeader({ label }: { label: string }) {
@@ -60,7 +60,6 @@ function LinkRow({
 }
 
 export default function SettingsScreen() {
-  const { logout } = useAuth();
   const [pushEnabled, setPushEnabled] = useState(true);
   const [leadAlerts, setLeadAlerts] = useState(true);
   const [emailUpdates, setEmailUpdates] = useState(false);
@@ -74,9 +73,13 @@ export default function SettingsScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            logout();
-            router.replace('/(auth)/login');
+          onPress: async () => {
+            try {
+              await authService.signOut();
+              router.replace('/(auth)/login');
+            } catch (err) {
+              Alert.alert('Something went wrong', err instanceof Error ? err.message : 'Please try again.');
+            }
           },
         },
       ]

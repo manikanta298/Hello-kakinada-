@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
 import { FormField } from '@/components/forms/FormField';
@@ -9,20 +8,40 @@ import { PasswordInput } from '@/components/auth/PasswordInput';
 import { AuthHeader } from '@/components/auth/AuthHeader';
 import { AuthFooter } from '@/components/auth/AuthFooter';
 import { SocialLoginButton } from '@/components/auth/SocialLoginButton';
-import { useAuthStore } from '@/store/authStore';
+import { authService } from '@/services/auth';
 import { colors, dimensions, radius, shadows, spacing } from '@/theme';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function LoginScreen() {
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const login = useAuthStore((s) => s.login);
+  const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = phone.trim().length >= 10 && password.length >= 4;
+  const canSubmit = EMAIL_RE.test(email.trim()) && password.length >= 6 && !submitting;
 
-  const handleLogin = () => {
-    // Prototype only — wire to services/api/auth.ts for real authentication.
-    login({ id: 'u1', name: 'Ravi Teja', phone });
-    router.replace('/(tabs)');
+  const handleLogin = async () => {
+    setSubmitting(true);
+    try {
+      await authService.signIn(email.trim(), password);
+      router.replace('/(tabs)');
+    } catch (err) {
+      Alert.alert('Login failed', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setSubmitting(true);
+    try {
+      await authService.signInWithGoogle();
+      router.replace('/(tabs)');
+    } catch (err) {
+      Alert.alert('Google sign-in failed', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -35,12 +54,12 @@ export default function LoginScreen() {
           <AuthHeader title="Welcome back" subtitle="Log in to manage your listings and enquiries." />
 
           <FormField
-            label="Phone number"
-            placeholder="10-digit mobile number"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
-            maxLength={10}
+            label="Email"
+            placeholder="you@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
           />
           <PasswordInput value={password} onChangeText={setPassword} placeholder="Enter password" />
 
@@ -60,7 +79,7 @@ export default function LoginScreen() {
             disabled={!canSubmit}
           >
             <AppText preset="button" color={colors.white}>
-              Log In
+              {submitting ? 'Logging in…' : 'Log In'}
             </AppText>
           </Pressable>
 
@@ -72,7 +91,7 @@ export default function LoginScreen() {
             <View style={styles.divider} />
           </View>
 
-          <SocialLoginButton label="Continue with Google" icon="logo-google" onPress={handleLogin} />
+          <SocialLoginButton label="Continue with Google" icon="logo-google" onPress={handleGoogleLogin} />
           <SocialLoginButton
             label="Continue as Guest"
             icon="person-outline"

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/common/AppText';
@@ -7,21 +7,37 @@ import { FormField } from '@/components/forms/FormField';
 import { PasswordInput } from '@/components/auth/PasswordInput';
 import { AuthHeader } from '@/components/auth/AuthHeader';
 import { AuthFooter } from '@/components/auth/AuthFooter';
+import { authService } from '@/services/auth';
 import { useAuthStore } from '@/store/authStore';
 import { colors, dimensions, radius, shadows, spacing } from '@/theme';
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export default function RegisterScreen() {
   const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const setPendingPhone = useAuthStore((s) => s.setPendingPhone);
+  const [submitting, setSubmitting] = useState(false);
+  const setPendingEmail = useAuthStore((s) => s.setPendingEmail);
 
-  const canSubmit = name.trim().length > 1 && phone.trim().length >= 10 && password.length >= 4;
+  const canSubmit =
+    name.trim().length > 1 && EMAIL_RE.test(email.trim()) && password.length >= 6 && !submitting;
 
-  const handleRegister = () => {
-    // Prototype: send an OTP to verify the phone before creating the account.
-    setPendingPhone(phone);
-    router.push('/(auth)/otp');
+  const handleRegister = async () => {
+    setSubmitting(true);
+    try {
+      const { needsVerification } = await authService.signUp(email.trim(), password, name.trim());
+      if (needsVerification) {
+        setPendingEmail(email.trim());
+        router.push('/(auth)/otp');
+      } else {
+        router.replace('/(tabs)');
+      }
+    } catch (err) {
+      Alert.alert('Sign up failed', err instanceof Error ? err.message : 'Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -32,12 +48,12 @@ export default function RegisterScreen() {
 
           <FormField label="Full name" placeholder="Your name" value={name} onChangeText={setName} />
           <FormField
-            label="Phone number"
-            placeholder="10-digit mobile number"
-            keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
-            maxLength={10}
+            label="Email"
+            placeholder="you@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
           />
           <PasswordInput value={password} onChangeText={setPassword} placeholder="Create a password" />
 
@@ -55,7 +71,7 @@ export default function RegisterScreen() {
             disabled={!canSubmit}
           >
             <AppText preset="button" color={colors.white}>
-              Send OTP
+              {submitting ? 'Creating account…' : 'Create Account'}
             </AppText>
           </Pressable>
 

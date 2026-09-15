@@ -1,20 +1,51 @@
 import React, { createContext, useContext, useEffect } from 'react';
+import { supabase } from '@/lib/supabase';
+import { authService } from '@/services/auth';
 import { useAuthStore } from '@/store/authStore';
 
 const AuthContext = createContext<null>(null);
 
-/**
- * In the prototype this just simulates a session check.
- * Swap the timeout for a real secureStorage/token lookup when
- * services/api/auth.ts is wired up.
- */
+async function syncUserFromSession(userId: string, email: string | undefined) {
+  const profile = await authService.fetchProfile(userId);
+  useAuthStore.getState().login({
+    id: userId,
+    name: profile?.fullName ?? email?.split('@')[0] ?? 'User',
+    email: profile?.email ?? email ?? '',
+    phone: profile?.phone ?? null,
+    avatarUrl: profile?.avatarUrl ?? null,
+  });
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setLoading = useAuthStore((s) => s.setLoading);
+  const logout = useAuthStore((s) => s.logout);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 400);
-    return () => clearTimeout(timer);
-  }, [setLoading]);
+    let mounted = true;
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!mounted) return;
+      if (session?.user) {
+        await syncUserFromSession(session.user.id, session.user.email);
+      }
+      setLoading(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        await syncUserFromSession(session.user.id, session.user.email);
+      } else {
+        logout();
+      }
+    });
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [setLoading, logout]);
 
   return <AuthContext.Provider value={null}>{children}</AuthContext.Provider>;
 }
