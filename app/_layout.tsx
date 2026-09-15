@@ -1,9 +1,30 @@
 import React from 'react';
+import { StyleSheet, View } from 'react-native';
 import { Stack } from 'expo-router';
 import { AppProvider } from '@/providers/AppProvider';
-import { colors } from '@/theme';
+import { AppText } from '@/components/common/AppText';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { colors, spacing } from '@/theme';
+
+function ConfigErrorScreen() {
+  return (
+    <View style={styles.errorRoot}>
+      <AppText preset="h2" align="center">
+        Configuration missing
+      </AppText>
+      <AppText preset="body" color={colors.textSecondary} align="center" style={styles.errorBody}>
+        This build is missing EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY.{'\n\n'}
+        Set them as environment variables in your EAS build profile (eas.json or `eas env:create`), then rebuild.
+      </AppText>
+    </View>
+  );
+}
 
 export default function RootLayout() {
+  if (!isSupabaseConfigured) {
+    return <ConfigErrorScreen />;
+  }
+
   return (
     <AppProvider>
       <Stack
@@ -33,3 +54,17 @@ export default function RootLayout() {
     </AppProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  errorRoot: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: spacing.xl,
+    backgroundColor: colors.background,
+  },
+  errorBody: {
+    marginTop: spacing.md,
+    lineHeight: 21,
+  },
+});

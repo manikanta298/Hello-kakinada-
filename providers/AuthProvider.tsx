@@ -23,13 +23,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!mounted) return;
-      if (session?.user) {
-        await syncUserFromSession(session.user.id, session.user.email);
-      }
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(async ({ data: { session } }) => {
+        if (!mounted) return;
+        if (session?.user) {
+          await syncUserFromSession(session.user.id, session.user.email);
+        }
+      })
+      .catch((err) => {
+        // Network/config issues shouldn't leave the app stuck on a spinner —
+        // fall through to the logged-out state instead.
+        // eslint-disable-next-line no-console
+        console.warn('[Auth] Failed to restore session:', err);
+      })
+      .finally(() => {
+        if (mounted) setLoading(false);
+      });
 
     const {
       data: { subscription },
